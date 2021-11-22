@@ -11,7 +11,7 @@ class ByteBankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: FormularioTransferencia(),
+        body: ListaTransferencias(),
       ),
     );
   }
@@ -31,45 +31,79 @@ class FormularioTransferencia extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              controller: _controllerConta,
-              style: TextStyle(fontSize: 20.0),
-              decoration: InputDecoration(
-                  labelText: "Número da conta", hintText: "0000000"),
-              keyboardType: TextInputType.number,
-            ),
+          Editor(
+            controlador: _controllerConta,
+            dica: '0000',
+            rotulo: 'Número da conta',
           ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-                controller: _controllerValor,
-                style: TextStyle(fontSize: 20.0),
-                decoration: InputDecoration(
-                    icon: Icon(Icons.monetization_on),
-                    labelText: "Valor",
-                    hintText: "R\$ 0.00"),
-                keyboardType: TextInputType.number),
+          Editor(
+            controlador: _controllerValor,
+            dica: 'R\$ 00.00',
+            rotulo: 'Valor',
+            icone: Icons.monetization_on,
           ),
           ElevatedButton(
               onPressed: () {
-                final int? numeroConta = int.tryParse(_controllerConta.text);
-                final double? valor = double.tryParse(_controllerValor.text);
-                if (numeroConta != null && valor != null) {
-                  final transferenciaCriada = Transferencia(valor, numeroConta);
-                  debugPrint('$transferenciaCriada');
-                }
+                criaTransferencia(context);
               },
               child: Text("Confirmar")),
         ],
       ),
     );
   }
+
+  void criaTransferencia(BuildContext context) {
+    final int? numeroConta = int.tryParse(_controllerConta.text);
+    final double? valor = double.tryParse(_controllerValor.text);
+    if (numeroConta != null && valor != null) {
+      final transferenciaCriada = Transferencia(valor, numeroConta);
+      Navigator.pop(context, transferenciaCriada);
+    }
+  }
 }
 
-class ListaTransferencias extends StatelessWidget {
+class Editor extends StatelessWidget {
+  final TextEditingController controlador;
+  final String rotulo;
+  final String dica;
+  final IconData? icone;
+
+  // ignore: use_key_in_widget_constructors
+  const Editor(
+      {required this.controlador,
+      required this.rotulo,
+      required this.dica,
+      this.icone});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: TextField(
+        controller: controlador,
+        style: TextStyle(fontSize: 20.0),
+        decoration: InputDecoration(
+          icon: icone != null ? Icon(icone) : null,
+          labelText: rotulo,
+          hintText: dica,
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+}
+
+class ListaTransferencias extends StatefulWidget {
   const ListaTransferencias({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return ListaTransferenciasState();
+  }
+}
+
+class ListaTransferenciasState extends State<ListaTransferencias> {
+  final List<Transferencia> _transferencias = [];
 
   @override
   Widget build(BuildContext context) {
@@ -77,15 +111,27 @@ class ListaTransferencias extends StatelessWidget {
       appBar: AppBar(
         title: Text('Transferências'),
       ),
-      body: Column(
-        children: [
-          ItemTransferencia(Transferencia(283.45, 23333)),
-          ItemTransferencia(Transferencia(344.00, 19093)),
-          ItemTransferencia(Transferencia(3444.11, 24093)),
-        ],
+      body: ListView.builder(
+        itemCount: _transferencias.length,
+        itemBuilder: (context, index) {
+          final transferencia = _transferencias[index];
+          return ItemTransferencia(transferencia);
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          final Future future =
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return FormularioTransferencia();
+          }));
+          future.then((transferenciaRecebida) {
+            if (transferenciaRecebida != null) {
+              setState(() {
+                _transferencias.add(transferenciaRecebida);
+              });
+            }
+          });
+        },
         child: Icon(Icons.add),
       ),
     );
