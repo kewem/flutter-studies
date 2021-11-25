@@ -10,9 +10,7 @@ class ByteBankApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: ListaTransferencias(),
-      ),
+      home: ListaTransferencias(),
     );
   }
 }
