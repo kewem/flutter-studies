@@ -22,12 +22,14 @@ class FormularioTransferencia extends StatelessWidget {
             controlador: _controllerConta,
             dica: '0000',
             rotulo: 'Número da conta',
+            textInput: TextInputType.number,
           ),
           Editor(
             controlador: _controllerValor,
             dica: 'R\$ 00.00',
             rotulo: 'Valor',
             icone: Icons.monetization_on,
+            textInput: TextInputType.number,
           ),
           ElevatedButton(
               onPressed: () {
